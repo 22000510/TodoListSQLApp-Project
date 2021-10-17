@@ -15,8 +15,10 @@ public class TodoUtil {
 	
 	public static void createItem(TodoList l) {
 		String category, title, desc, due_date;
+		int is_completed = 0;
 		Scanner sc = new Scanner(System.in);
-		
+		int progress=0;
+		int importance = 0;
 		System.out.print("[항목 추가]\n"+"제목 > ");
 		title = sc.next();
 		/*if(l.isDuplicate(title)) {
@@ -30,8 +32,12 @@ public class TodoUtil {
 		desc = sc.nextLine().trim();
 		System.out.print("마감일자 > ");
 		due_date = sc.nextLine().trim();
+		System.out.print("진행도 > ");
+		progress = sc.nextInt();
+		System.out.print("중요도 > ");
+		importance = sc.nextInt();
 		
-		TodoItem t = new TodoItem(title, desc, category, due_date);
+		TodoItem t = new TodoItem(title,is_completed, desc, category, due_date,progress,importance);
 		if(l.addItem(t)>0)
 			System.out.println("추가되었습니다.");
 	}
@@ -69,8 +75,12 @@ public class TodoUtil {
 		
 		System.out.print("[항목 삭제])\n"
 				+ "삭제할 항목의 번호를 입력하시오 > ");
-		int index = sc.nextInt();
-		if (l.deleteItem(index)>0)
+		String[] index = sc.nextLine().split(" ");
+		for(int i=0; i<index.length;i++) {
+			int index1 = Integer.parseInt(index[i]);
+			if (l.deleteItem(index1)>0);
+		}
+		
 			System.out.println("삭제되었습니다.");
 	}
 	/*public static void deleteItem(TodoList l) {
@@ -139,7 +149,9 @@ public class TodoUtil {
 	public static void updateItem(TodoList l) {
 		String new_title, new_desc, new_category, new_due_date;
 		Scanner sc = new Scanner(System.in);
-		
+		int is_completed = 0;
+		int new_progress =0;
+		int new_importance=0;
 		System.out.print("[항목 수정]\n"
 				+ "수정할 항목의 번호를 입력하시오 > ");
 		int index = sc.nextInt();
@@ -153,8 +165,12 @@ public class TodoUtil {
 		new_desc = sc.nextLine().trim();
 		System.out.print("새 마감일자 > ");
 		new_due_date = sc.nextLine().trim();
+		System.out.print("새 진행도 > ");
+		new_progress = sc.nextInt();
+		System.out.print("새 중요도 > ");
+		new_importance = sc.nextInt();
 		
-		TodoItem t = new TodoItem(new_title, new_desc, new_category, new_due_date);
+		TodoItem t = new TodoItem(new_title,is_completed , new_desc, new_category, new_due_date, new_progress, new_importance);
 		t.setId(index);
 		if(l.updateItem(t) > 0)
 			System.out.println("수정되었습니다.");
@@ -232,6 +248,29 @@ public class TodoUtil {
 		}
 		System.out.printf("\n총 %d개의 항목을 찾았습니다.\n", count);
 	}
+	
+	public static void completeItem(TodoList l) {
+		String category, title, desc, due_date, is_completed = "0";
+		Scanner sc = new Scanner(System.in);
+		String[] num = sc.nextLine().split(" ");
+		for(int i=0; i<num.length;i++) {
+			int index1 = Integer.parseInt(num[i]);
+			l.completeItem(index1);
+		}
+		
+			System.out.println("체크되었습니다.");
+	}
+	
+	public static void listAll(TodoList l, int index) {
+		int count=0;
+		for (TodoItem item : l.getList(index)) {
+			System.out.println(item.toString());
+			count++;
+		}
+		System.out.printf("총 %d개의 항목을 찾았습니다.\n", count);
+	}
+	
+	
 /*	public static void loadList(TodoList l, String filename){
 		try {
 			FileReader reader = new FileReader(filename);

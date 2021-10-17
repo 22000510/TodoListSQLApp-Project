@@ -26,8 +26,8 @@ public class TodoList {
 	}
 */
 	public int addItem(TodoItem t) {
-		String sql = "insert into list (title, memo, category, current_date, due_date)"
-				+ "values (?,?,?,?,?);";
+		String sql = "insert into list (title, memo, category, current_date, due_date, progress, importance)"
+				+ "values (?,?,?,?,?,?,?);";
 		PreparedStatement pstmt;
 		int count=0;
 		try {
@@ -37,6 +37,8 @@ public class TodoList {
 			pstmt.setString(3, t.getCategory());
 			pstmt.setString(4, t.getCurrent_date());
 			pstmt.setString(5, t.getDue_date());
+			pstmt.setInt(6, t.getProgress());
+			pstmt.setInt(7, t.getImportance());
 			count = pstmt.executeUpdate();
 			pstmt.close();
 		}catch (SQLException e) {
@@ -58,6 +60,21 @@ public class TodoList {
 			e.printStackTrace();
 		}
 		return count;
+	}
+	
+	public void completeItem(int index) {
+		String sql = "update list set is_completed=?"+"where id = ?;";
+		PreparedStatement pstmt;
+		int count=0;
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, "1");
+			pstmt.setInt(2, index);
+			count = pstmt.executeUpdate();
+			pstmt.close();
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	void editItem(TodoItem t, TodoItem updated) {
@@ -103,6 +120,7 @@ public class TodoList {
 			int records = 0;
 			while((line = br.readLine())!=null) {
 				StringTokenizer st = new StringTokenizer(line,"##");
+				String id = st.nextToken();
 				String category = st.nextToken();
 				String title = st.nextToken();
 				String description = st.nextToken();
@@ -140,7 +158,10 @@ public class TodoList {
 				String description = rs.getString("memo");
 				String due_date = rs.getString("due_date");
 				String current_date = rs.getString("current_date");
-				TodoItem t = new TodoItem(title,description,category, due_date);
+				int is_completed =  rs.getInt("is_completed");
+				int progress = rs.getInt("progress");
+				int importance = rs.getInt("importance");
+				TodoItem t = new TodoItem(title,is_completed,description,category, due_date, progress, importance);
 				t.setId(id);
 				t.setCurrent_date(current_date);
 				list.add(t);
@@ -175,15 +196,7 @@ public class TodoList {
 			String sql = "SELECT DISTINCT category FROM list";
 			ResultSet rs = stmt.executeQuery(sql);
 			while(rs.next()){
-				int id = rs.getInt("id");
 				String category = rs.getString("category");
-				String title = rs.getString("title");
-				String description = rs.getString("memo");
-				String due_date = rs.getString("due_date");
-				String current_date = rs.getString("current_date");
-				TodoItem t = new TodoItem(title,description,category, due_date);
-				t.setId(id);
-				t.setCurrent_date(current_date);
 				list.add(category);
 			}
 			stmt.close();
@@ -208,7 +221,10 @@ public class TodoList {
 				String description = rs.getString("memo");
 				String due_date = rs.getString("due_date");
 				String current_date = rs.getString("current_date");
-				TodoItem t = new TodoItem(title,description,category, due_date);
+				int is_completed =  rs.getInt("is_completed");
+				int progress =  rs.getInt("progress");
+				int importance =  rs.getInt("importance");
+				TodoItem t = new TodoItem(title,is_completed,description,category, due_date,progress,importance);
 				t.setId(id);
 				t.setCurrent_date(current_date);
 				list.add(t);
@@ -221,7 +237,7 @@ public class TodoList {
 	}
 	
 	public int updateItem(TodoItem t) {
-		String sql = "update list set title=?, memo=?, current_date=?, due_date=?"
+		String sql = "update list set title=?, memo=?, category=?, current_date=?, due_date=?, progress=?, importance=?"
 				+ "where id = ?;";
 		PreparedStatement pstmt;
 		int count=0;
@@ -232,7 +248,9 @@ public class TodoList {
 			pstmt.setString(3, t.getCategory());
 			pstmt.setString(4, t.getCurrent_date());
 			pstmt.setString(5, t.getDue_date());
-			pstmt.setInt(6, t.getId());
+			pstmt.setInt(6, t.getProgress());
+			pstmt.setInt(7, t.getImportance());
+			pstmt.setInt(8, t.getId());
 			count = pstmt.executeUpdate();
 			pstmt.close();
 		}catch (SQLException e) {
@@ -257,7 +275,10 @@ public class TodoList {
 				String description = rs.getString("memo");
 				String due_date = rs.getString("due_date");
 				String current_date = rs.getString("current_date");
-				TodoItem t = new TodoItem(title,description,category, due_date);
+				int is_completed =  rs.getInt("is_completed");
+				int progress =  rs.getInt("progress");
+				int importance =  rs.getInt("importance");
+				TodoItem t = new TodoItem(title,is_completed,description,category, due_date,progress,importance);
 				t.setId(id);
 				t.setCurrent_date(current_date);
 				list.add(t);
@@ -284,12 +305,44 @@ public class TodoList {
 				String description = rs.getString("memo");
 				String due_date = rs.getString("due_date");
 				String current_date = rs.getString("current_date");
-				TodoItem t = new TodoItem(title,description,category, due_date);
+				int is_completed =  rs.getInt("is_completed");
+				int progress =  rs.getInt("progress");
+				int importance =  rs.getInt("importance");
+				TodoItem t = new TodoItem(title,is_completed,description,category, due_date,progress,importance);
 				t.setId(id);
 				t.setCurrent_date(current_date);
 				list.add(t);
 			}
 			stmt.close();
+		}catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return list;
+	}
+	public ArrayList<TodoItem> getList(int index){
+		ArrayList<TodoItem> list = new ArrayList<TodoItem>();
+		PreparedStatement pstmt;
+		try {
+			String sql = "SELECT * FROM list WHERE is_completed like ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1,index);
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next()){
+				int id = rs.getInt("id");
+				String category = rs.getString("category");
+				String title = rs.getString("title");
+				int is_completed =  rs.getInt("is_completed");
+				String description = rs.getString("memo");
+				String due_date = rs.getString("due_date");
+				String current_date = rs.getString("current_date");
+				int progress =  rs.getInt("progress");
+				int importance =  rs.getInt("importance");
+				TodoItem t = new TodoItem(title,is_completed,description,category, due_date,progress,importance);
+				t.setId(id);
+				t.setCurrent_date(current_date);
+				list.add(t);
+			}
+			pstmt.close();
 		}catch (SQLException e) {
 			e.printStackTrace();
 		}

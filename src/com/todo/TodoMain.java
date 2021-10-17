@@ -66,11 +66,20 @@ public class TodoMain {
 				String cate = sc.nextLine().trim();
 				TodoUtil.findCateList(l, cate);
 				break;
+				
 			case "find":
 				String keyword = sc.nextLine().trim();
 				TodoUtil.findList(l,keyword);
 				break;
-				
+			
+			case "comp":
+				TodoUtil.completeItem(l);
+				break;
+			case "ls_comp":
+				int index =1;
+				TodoUtil.listAll(l,index);
+				break;	
+			
 			case "help":
 				Menu.displaymenu();
 				break;
